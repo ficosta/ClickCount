@@ -1,41 +1,43 @@
 # ClickCount
 
-A web app that listens to your microphone and counts sharp transient sounds (clicks). Designed for counting insulin pen clicks — hold your phone near the pen and let the app count for you.
+A simple web app that uses your phone's microphone to count clicks and other sharp sounds in real time.
+
+## What is it for?
+
+Originally built to count **insulin pen clicks** and **Mounjaro (tirzepatide) pen doses** — just hold your phone near the pen while dialing and let the app count for you. No more second-guessing if you dialed the right number of units.
+
+But it works for anything that makes a distinct click or tap sound:
+
+- Counting reps on a mechanical counter
+- Tracking knitting row counter clicks
+- Monitoring metronome beats
+- Any repetitive sound you need to keep track of
+
+## Try it
+
+**[https://ficosta.github.io/ClickCount/](https://ficosta.github.io/ClickCount/)**
+
+Works on any modern browser with microphone access (Chrome, Safari, Firefox). Best on mobile — just open the link on your phone.
 
 ## How to Use
 
-1. **Serve the files** over HTTP (required for microphone access and AudioWorklet):
-   ```bash
-   cd ClickCount
-   python3 -m http.server 8000
-   ```
-2. Open `http://localhost:8000` in your browser.
-3. Tap **Start**, grant microphone permission, and begin clicking.
-4. The large counter increments with each detected click. A click log shows recent detections with timing and peak amplitude.
+1. Open the app and tap **START**
+2. Grant microphone permission when prompted
+3. Hold your phone near the sound source
+4. The big number counts each detected click
+5. Tap the log icon (top right) to see a history of detected clicks
+6. Adjust **Settings** if needed — lower sensitivity = picks up quieter clicks
 
-## HTTPS Requirement
+## Settings
 
-`getUserMedia` requires a **secure context**. `localhost` works for development, but to use on a mobile device over the network you need HTTPS. Options:
-
-- Use a tunneling service (e.g., `ngrok http 8000`)
-- Serve with a self-signed certificate
-- Deploy to any static hosting with HTTPS (GitHub Pages, Netlify, etc.)
-
-## Tuning Parameters
-
-Open the **Settings** panel in the app to adjust:
-
-| Parameter | Default | Effect |
-|-----------|---------|--------|
-| **Sensitivity** | 0.15 | Absolute peak threshold — lower = more sensitive |
-| **Cooldown** | 80 ms | Minimum time between detected clicks |
-| **Noise adapt** | 0.995 | How quickly ambient noise level adapts (higher = slower) |
+| Parameter | Default | What it does |
+|-----------|---------|--------------|
+| **Sensitivity** | 0.03 | Peak threshold — lower picks up quieter sounds |
+| **Cooldown** | 30 ms | Minimum gap between clicks (prevents double-counting) |
+| **Noise adapt** | 0.995 | How fast it adjusts to background noise (higher = slower) |
 
 ## How It Works
 
-Audio from the microphone is analyzed in an AudioWorklet processor. A click is detected when:
-- The peak amplitude exceeds the absolute threshold
-- The RMS energy exceeds the ambient average by a relative factor (3x)
-- Enough time has passed since the last click (cooldown)
+The app uses the Web Audio API with an AudioWorklet processor to analyze microphone input in real time. A click is detected when the audio signal spikes above both an absolute threshold and a relative threshold compared to the ambient noise level. A cooldown timer prevents the same sound from being counted twice.
 
-This dual-threshold approach rejects quiet background noise while adapting to varying mic distances and automatic gain control.
+No data leaves your device — all processing happens locally in your browser.
