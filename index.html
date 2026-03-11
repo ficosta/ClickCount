@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ClickCount</title>
+<style>
+  :root {
+    --bg: #0d0d1a;
+    --surface: #161628;
+    --accent: #1e1e3a;
+    --text: #e8e8f0;
+    --text-dim: #6b6b8a;
+    --green: #00e676;
+    --red: #ff5252;
+    --meter-bg: #0a0a14;
+    --brand-gradient: linear-gradient(135deg, #00e676 0%, #00bcd4 50%, #7c4dff 100%);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Hero Brand */
+  .hero {
+    position: relative;
+    text-align: center;
+    padding: 32px 20px 16px;
+  }
+
+  .log-icon {
+    position: absolute;
+    top: 32px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: #2a2a40;
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    transition: background 0.15s;
+  }
+
+  .log-icon:active { background: #3a3a55; }
+
+  .log-icon .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--green);
+    color: #0d0d1a;
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+
+  .log-icon .badge.visible { display: flex; }
+
+  .hero-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  /* Count */
+  .count-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    min-height: 200px;
+  }
+
+  #count {
+    font-size: clamp(5rem, 22vw, 12rem);
+    font-weight: 800;
+    line-height: 1;
+    transition: transform 0.1s ease-out, color 0.1s ease-out;
+    user-select: none;
+    letter-spacing: -0.04em;
+  }
+
+  #count.flash {
+    transform: scale(1.15);
+    color: var(--green);
+  }
+
+  .count-label {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+  }
+
+  /* Meter */
+  .meter-section {
+    padding: 0 20px 16px;
+  }
+
+  .meter-container {
+    background: var(--meter-bg);
+    border-radius: 6px;
+    height: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #meter-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green), #ffeb3b, var(--red));
+    border-radius: 6px;
+    transition: width 0.05s linear;
+  }
+
+  #threshold-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: white;
+    opacity: 0.7;
+    left: 15%;
+  }
+
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    padding: 0 20px 20px;
+  }
+
+  .controls button {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 52px;
+    touch-action: manipulation;
+    letter-spacing: 0.05em;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+
+  .controls button:active {
+    transform: scale(0.97);
+  }
+
+  #btn-reset {
+    background: var(--surface);
+    color: var(--text-dim);
+    border: 1px solid var(--accent);
+  }
+
+  #btn-toggle {
+    background: var(--green);
+    color: #0d0d1a;
+  }
+
+  #btn-toggle.active {
+    background: var(--red);
+    color: white;
+  }
+
+  /* Settings */
+  .settings-section {
+    padding: 0 20px 16px;
+  }
+
+  .settings-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    user-select: none;
+  }
+
+  .settings-header .arrow {
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+
+  .settings-header .arrow.open { transform: rotate(90deg); }
+
+  .settings-body {
+    display: none;
+    padding: 8px 0;
+  }
+
+  .settings-body.open { display: block; }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .setting-row label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-width: 100px;
+  }
+
+  .setting-row input[type="range"] {
+    flex: 1;
+    margin: 0 12px;
+    accent-color: var(--green);
+  }
+
+  .setting-row .value {
+    font-size: 0.85rem;
+    min-width: 50px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Log Modal */
+  .log-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .log-overlay.open {
+    display: flex;
+  }
+
+  .log-modal {
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+    max-width: 500px;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.2s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .log-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--accent);
+  }
+
+  .log-modal-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .log-close {
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  #click-log {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .log-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .log-entry {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--accent);
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry .log-num { color: var(--green); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-title">ClickCount</div>
+  <div class="hero-subtitle">Microphone-powered click counter</div>
+  <button class="log-icon" id="log-open" title="Click Log">
+    &#9776;
+    <span class="badge" id="log-badge"></span>
+  </button>
+</div>
+
+<div class="count-section">
+  <div id="count">0</div>
+  <div class="count-label">clicks</div>
+</div>
+
+<div class="meter-section">
+  <div class="meter-container">
+    <div id="meter-fill"></div>
+    <div id="threshold-line"></div>
+  </div>
+  <div class="meter-labels">
+    <span>Level</span>
+    <span id="level-value">0.00</span>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="btn-reset">RESET</button>
+  <button id="btn-toggle">START</button>
+</div>
+
+<div class="settings-section">
+  <div class="settings-header" id="settings-toggle">
+    <span class="arrow">&#9654;</span> Settings
+  </div>
+  <div class="settings-body" id="settings-body">
+    <div class="setting-row">
+      <label>Sensitivity</label>
+      <input type="range" id="s-threshold" min="0.02" max="0.5" step="0.01" value="0.03">
+      <span class="value" id="v-threshold">0.03</span>
+    </div>
+    <div class="setting-row">
+      <label>Cooldown</label>
+      <input type="range" id="s-cooldown" min="10" max="300" step="5" value="30">
+      <span class="value" id="v-cooldown">30ms</span>
+    </div>
+    <div class="setting-row">
+      <label>Noise adapt</label>
+      <input type="range" id="s-smoothing" min="0.98" max="0.999" step="0.001" value="0.995">
+      <span class="value" id="v-smoothing">0.995</span>
+    </div>
+  </div>
+</div>
+
+<div class="log-overlay" id="log-overlay">
+  <div class="log-modal">
+    <div class="log-modal-header">
+      <h2>Click Log</h2>
+      <button class="log-close" id="log-close">&#10005;</button>
+    </div>
+    <div id="click-log">
+      <div class="log-empty">No clicks detected yet</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const countEl = document.getElementById('count');
+  const meterFill = document.getElementById('meter-fill');
+  const thresholdLine = document.getElementById('threshold-line');
+  const levelValue = document.getElementById('level-value');
+  const btnToggle = document.getElementById('btn-toggle');
+  const btnReset = document.getElementById('btn-reset');
+  const settingsToggle = document.getElementById('settings-toggle');
+  const settingsBody = document.getElementById('settings-body');
+  const clickLog = document.getElementById('click-log');
+  const logOverlay = document.getElementById('log-overlay');
+  const logOpen = document.getElementById('log-open');
+  const logClose = document.getElementById('log-close');
+  const logBadge = document.getElementById('log-badge');
+
+  const sThreshold = document.getElementById('s-threshold');
+  const sCooldown = document.getElementById('s-cooldown');
+  const sSmoothing = document.getElementById('s-smoothing');
+  const vThreshold = document.getElementById('v-threshold');
+  const vCooldown = document.getElementById('v-cooldown');
+  const vSmoothing = document.getElementById('v-smoothing');
+
+  let count = 0;
+  let listening = false;
+  let audioCtx = null;
+  let workletNode = null;
+  let stream = null;
+  let startTime = 0;
+  let flashTimeout = null;
+  const logEntries = [];
+
+  settingsToggle.addEventListener('click', function () {
+    settingsToggle.querySelector('.arrow').classList.toggle('open');
+    settingsBody.classList.toggle('open');
+  });
+
+  logOpen.addEventListener('click', function () {
+    logOverlay.classList.add('open');
+  });
+
+  logClose.addEventListener('click', function () {
+    logOverlay.classList.remove('open');
+  });
+
+  logOverlay.addEventListener('click', function (e) {
+    if (e.target === logOverlay) logOverlay.classList.remove('open');
+  });
+
+  function updateThresholdLine() {
+    const pct = Math.min(parseFloat(sThreshold.value) * 100, 100);
+    thresholdLine.style.left = pct + '%';
+  }
+
+  function sendParam(key, value) {
+    if (workletNode) workletNode.port.postMessage({ [key]: value });
+  }
+
+  sThreshold.addEventListener('input', function () {
+    vThreshold.textContent = parseFloat(this.value).toFixed(2);
+    sendParam('absoluteThreshold', parseFloat(this.value));
+    updateThresholdLine();
+  });
+
+  sCooldown.addEventListener('input', function () {
+    vCooldown.textContent = this.value + 'ms';
+    sendParam('cooldownMs', parseInt(this.value));
+  });
+
+  sSmoothing.addEventListener('input', function () {
+    vSmoothing.textContent = parseFloat(this.value).toFixed(3);
+    sendParam('smoothingFactor', parseFloat(this.value));
+  });
+
+  updateThresholdLine();
+
+  btnToggle.addEventListener('click', function () {
+    if (listening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  });
+
+  async function startListening() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioCtx({ sampleRate: 44100 });
+
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+
+      await audioCtx.audioWorklet.addModule('click-processor.js');
+      workletNode = new AudioWorkletNode(audioCtx, 'click-processor');
+
+      workletNode.port.onmessage = function (e) {
+        const d = e.data;
+        if (d.type === 'click') onClick(d);
+        else if (d.type === 'level') onLevel(d);
+      };
+
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(workletNode);
+
+      workletNode.port.postMessage({
+        absoluteThreshold: parseFloat(sThreshold.value),
+        relativeThreshold: 3.0,
+        cooldownMs: parseInt(sCooldown.value),
+        smoothingFactor: parseFloat(sSmoothing.value)
+      });
+
+      listening = true;
+      startTime = Date.now();
+      btnToggle.textContent = 'STOP';
+      btnToggle.classList.add('active');
+    } catch (err) {
+      alert('Microphone access failed: ' + err.message);
+    }
+  }
+
+  function stopListening() {
+    if (workletNode) {
+      workletNode.disconnect();
+      workletNode = null;
+    }
+    if (stream) {
+      stream.getTracks().forEach(function (t) { t.stop(); });
+      stream = null;
+    }
+    if (audioCtx) {
+      audioCtx.close();
+      audioCtx = null;
+    }
+
+    listening = false;
+    btnToggle.textContent = 'START';
+    btnToggle.classList.remove('active');
+    meterFill.style.width = '0%';
+    levelValue.textContent = '0.00';
+  }
+
+  function onClick(data) {
+    count++;
+    countEl.textContent = count;
+
+    countEl.classList.add('flash');
+    clearTimeout(flashTimeout);
+    flashTimeout = setTimeout(function () {
+      countEl.classList.remove('flash');
+    }, 150);
+
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    logEntries.unshift({
+      num: count,
+      time: elapsed,
+      peak: data.peak.toFixed(2)
+    });
+    if (logEntries.length > 20) logEntries.pop();
+    renderLog();
+  }
+
+  function onLevel(data) {
+    const pct = Math.min(data.peak * 100, 100);
+    meterFill.style.width = pct + '%';
+    levelValue.textContent = data.peak.toFixed(2);
+  }
+
+  function renderLog() {
+    if (logEntries.length === 0) {
+      clickLog.innerHTML = '<div class="log-empty">No clicks detected yet</div>';
+      logBadge.classList.remove('visible');
+      return;
+    }
+    logBadge.textContent = logEntries.length;
+    logBadge.classList.add('visible');
+    clickLog.innerHTML = logEntries.map(function (e) {
+      return '<div class="log-entry"><span><span class="log-num">#' + e.num + '</span>  ' + e.time + 's</span><span>peak=' + e.peak + '</span></div>';
+    }).join('');
+  }
+
+  btnReset.addEventListener('click', function () {
+    if (count > 0 && !confirm('Reset click count to 0?')) return;
+    count = 0;
+    countEl.textContent = '0';
+    logEntries.length = 0;
+    renderLog();
+    if (listening) startTime = Date.now();
+  });
+})();
+</script>
+</body>
+</html>
